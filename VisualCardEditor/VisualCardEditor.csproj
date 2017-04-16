@@ -14,6 +14,8 @@
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -35,8 +37,24 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="PropertyChanged, Version=1.52.1.0, Culture=neutral, PublicKeyToken=ee3ee20bcf148ddd, processorArchitecture=MSIL">
+      <HintPath>..\packages\PropertyChanged.Fody.1.52.1\lib\netstandard10\PropertyChanged.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -55,6 +73,55 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="AddCardTypeWindow.xaml.cs">
+      <DependentUpon>AddCardTypeWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Card.cs">
+      <DependentUpon>ChampionsDB.tt</DependentUpon>
+    </Compile>
+    <Compile Include="CardEffect.cs">
+      <DependentUpon>ChampionsDB.tt</DependentUpon>
+    </Compile>
+    <Compile Include="CardEffectsJoin.cs">
+      <DependentUpon>ChampionsDB.tt</DependentUpon>
+    </Compile>
+    <Compile Include="CardType.cs">
+      <DependentUpon>ChampionsDB.tt</DependentUpon>
+    </Compile>
+    <Compile Include="CardTypeLookup.cs" />
+    <Compile Include="CardTypesJoin.cs">
+      <DependentUpon>ChampionsDB.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ChampionsDB.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ChampionsDB.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ChampionsDB.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ChampionsDB.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ChampionsDB.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ChampionsDB.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="Condition.cs">
+      <DependentUpon>ChampionsDB.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Effect.cs">
+      <DependentUpon>ChampionsDB.tt</DependentUpon>
+    </Compile>
+    <Compile Include="EffectTrigger.cs">
+      <DependentUpon>ChampionsDB.tt</DependentUpon>
+    </Compile>
+    <Compile Include="EffectTriggerLookup.cs" />
+    <Compile Include="Log.cs" />
+    <Page Include="AddCardTypeWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -86,16 +153,91 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <Resource Include="Images\0fvt3AO.png" />
+    <Resource Include="Images\476288.jpg" />
+    <Resource Include="Images\75i8TCL.jpg" />
+    <Resource Include="Images\Blue1.jpg" />
+    <Resource Include="Images\bluestone1.png" />
+    <Resource Include="Images\darkpattern.jpg" />
+    <Resource Include="Images\drock010.jpg" />
+    <Resource Include="Images\GoldOnBlackScrollwork.jpg" />
+    <Resource Include="Images\GrayLizardSkin.jpg" />
+    <Resource Include="Images\Marble.gif" />
+    <Resource Include="Images\MarbleBlue.jpg" />
+    <Resource Include="Images\MarbleInset.gif" />
+    <Resource Include="Images\RedBlackFloral.jpg" />
+    <Resource Include="Images\Sandstone.jpg" />
+    <Resource Include="Images\Sky1.jpg" />
+    <Resource Include="Images\Sky2.jpg" />
+    <Resource Include="Images\ss124.gif" />
+    <EntityDeploy Include="ChampionsDB.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>ChampionsDB.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <None Include="ChampionsDB.edmx.diagram">
+      <DependentUpon>ChampionsDB.edmx</DependentUpon>
+    </None>
+    <None Include="packages.config" />
+    <None Include="Properties\DataSources\Card.datasource" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
+    <Resource Include="Images\DCzWmXe.jpg" />
+    <Resource Include="Images\Rz87nu9.jpg" />
+    <Resource Include="Images\X2UtDj6.jpg" />
+    <Resource Include="Images\yin_yang_wood_by_apb2-d3i17vv.jpg" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="FodyWeavers.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\03408b60d6942626cdae99f067493261.jpg" />
+    <Resource Include="Images\0e9ef5831f4297131623e4904334200a.jpg" />
+    <Resource Include="Images\6ad70e9a5a692b4e49f06f06855ce066.jpg" />
+    <Resource Include="Images\7eed32176244e5a16a335a4ae871ca63.jpg" />
+    <Resource Include="Images\beautiful-fantasy-wallpapers.jpg" />
+    <Resource Include="Images\dark-fantasy-backgrounds.jpg" />
+    <Resource Include="Images\efe9e68a96dea4e68484cd78f917647d.jpg" />
+    <Resource Include="Images\ff7.jpg" />
+    <Resource Include="Images\forest_by_d1eselx-d8n18zs.jpg" />
+    <Resource Include="Images\purple-forest.jpg" />
+    <Resource Include="Images\ySLRVs.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Add.png" />
+    <Resource Include="Images\Erase.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\accept.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ChampionsDB.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>ChampionsDB.edmx</DependentUpon>
+      <LastGenOutput>ChampionsDB.Context.cs</LastGenOutput>
+    </Content>
+    <Content Include="ChampionsDB.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>ChampionsDB.edmx</DependentUpon>
+      <LastGenOutput>ChampionsDB.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\Fody.1.29.2\build\dotnet\Fody.targets" Condition="Exists('..\packages\Fody.1.29.2\build\dotnet\Fody.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Fody.1.29.2\build\dotnet\Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Fody.1.29.2\build\dotnet\Fody.targets'))" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

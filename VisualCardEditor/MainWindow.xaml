@@ -5,8 +5,746 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VisualCardEditor"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
-    <Grid>
-        
-    </Grid>
+        Title="MainWindow" Height="600" Width="1120" Loaded="Window_Loaded" MinHeight="400" MinWidth="800">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <local:CardTypeNameLookup x:Key="CardTypeNameLookup" />
+        <local:EffectTextBuilder x:Key="EffectTextBuilder" />
+        <local:Card x:Key="CurrentCard"/>
+        <local:CardEffect x:Key="CurrentEffect"/>
+    </Window.Resources>
+    <Window.Background>
+        <ImageBrush Stretch="UniformToFill" ImageSource="Images/ss124.gif" />
+    </Window.Background>
+
+    <DockPanel Name="MainpaneldDock" LastChildFill="True">
+        <ToolBar Name="TopToolBar" DockPanel.Dock="Top">
+
+        </ToolBar>
+        <StatusBar Name="MainStatusBar" DockPanel.Dock="Bottom">
+            <TextBlock Name="txtStatus"></TextBlock>
+        </StatusBar>
+        <Grid Name="MainGrid" Margin="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" MinWidth="200" MaxWidth="300"/>
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid Name="LeftGridPanel" Grid.Column="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <DockPanel Name="CardsPanel" Grid.Row="0" LastChildFill="True" HorizontalAlignment="Stretch" Margin="6" VerticalAlignment="Stretch">
+                    <Grid DockPanel.Dock="Top" HorizontalAlignment="Stretch" Background="Goldenrod" Opacity="0.8">
+                        <TextBlock Text=" Cards" Grid.Column="0" HorizontalAlignment="Left" Background="Transparent" DockPanel.Dock="Top" FontWeight="Bold"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Name="CardAddButton" 
+                                Margin="2,0"
+                                Height="16"
+                                FontSize="10"
+                                Click="CardAddButton_Click">
+                                <Image Source="Images/Add.png" Stretch="UniformToFill" />
+                            </Button>
+                            <Button Name="CardDeleteButton"
+                                Margin="2,0"
+                                Height="16"
+                                Width="16"
+                                Click="CardDeleteButton_Click">
+                                <Image Source="Images/Erase.png" Stretch="UniformToFill" />
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                    <ListView x:Name="cardsListView" DisplayMemberPath="Name" ItemsSource="{Binding}" SelectedValuePath="Id" SelectionMode="Single" 
+                              HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#EEEEEE" MouseDoubleClick="cardsListView_MouseDoubleClick"
+                              
+                              />
+                </DockPanel>
+                <GridSplitter Grid.Row="1" Height="3" HorizontalAlignment="Stretch" ResizeBehavior="BasedOnAlignment"/>
+                <DockPanel Name="TypesPanel" Grid.Row="2" LastChildFill="True" HorizontalAlignment="Stretch" Margin="6">
+                    <Grid DockPanel.Dock="Top" HorizontalAlignment="Stretch" Background="LightSeaGreen">
+                        <TextBlock Text=" Card Types" Grid.Column="0" HorizontalAlignment="Left" Background="Transparent" DockPanel.Dock="Top" FontWeight="Bold"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Name="CardTypeAddButton" 
+                                Margin="2,0"
+                                Height="16"
+                                FontSize="10"
+                                Click="CardTypeAddButton_Click">
+                                <Image Source="Images/Add.png" Stretch="UniformToFill" />
+                            </Button>
+                            <Button Name="CardTypeDeleteButton"
+                                Margin="2,0"
+                                Height="16"
+                                Width="16"
+                                Click="CardTypeDeleteButton_Click">
+                                <Image Source="Images/Erase.png" Stretch="UniformToFill" />
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                    <ListView x:Name="cardTypesListView" DisplayMemberPath="Name" ItemsSource="{Binding}" 
+                              SelectedValuePath="Id" SelectionMode="Single"
+                              PreviewMouseLeftButtonDown="cardTypesListView_PreviewMouseLeftButtonDown"
+                              PreviewMouseMove="cardTypesListView_PreviewMouseMove"
+                              HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#EEEEEE"/>
+                </DockPanel>
+                <GridSplitter Grid.Row="3" Height="3" HorizontalAlignment="Stretch" ResizeBehavior="BasedOnAlignment"/>
+                <DockPanel Name="CardEffectsPanel" Grid.Row="4" LastChildFill="True" HorizontalAlignment="Stretch" Margin="6">
+                    <Grid DockPanel.Dock="Top" HorizontalAlignment="Stretch" Background="CornflowerBlue">
+                        <TextBlock Text=" Card Effects" Grid.Column="0" HorizontalAlignment="Left" Background="Transparent" DockPanel.Dock="Top" FontWeight="Bold"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Name="CardEffectsAddButton" 
+                                Margin="2,0"
+                                Height="16"
+                                FontSize="10"
+                                Click="CardEffectsAddButton_Click">
+                                <Image Source="Images/Add.png" Stretch="UniformToFill" />
+                            </Button>
+                            <Button Name="CardEffectsDeleteButton"
+                                Margin="2,0"
+                                Height="16"
+                                Width="16"
+                                Click="CardEffectsDeleteButton_Click">
+                                <Image Source="Images/Erase.png" Stretch="UniformToFill" />
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                    <ListView x:Name="cardEffectsListView" DisplayMemberPath="Name" ItemsSource="{Binding}" 
+                              SelectedValuePath="Id" SelectionMode="Single"
+                              PreviewMouseLeftButtonDown="cardEffectsListView_PreviewMouseLeftButtonDown"
+                              PreviewMouseMove="cardEffectsListView_PreviewMouseMove"
+                              HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="#EEEEEE" MouseDoubleClick="cardEffectsListView_MouseDoubleClick" />
+                </DockPanel>
+            </Grid>
+            <GridSplitter Grid.Column="0" Width="1" VerticalAlignment="Stretch" ResizeBehavior="BasedOnAlignment" Background="Transparent"/>
+            <Grid Grid.Column="1" Background="Transparent">
+                <TabControl Name="MainTabControl" Margin="10" BorderThickness="0">
+                    <TabControl.Resources>
+                        <Style TargetType="TabItem">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="TabItem">
+                                        <Grid Name="Panel" Background="Transparent">
+                                            <Border Name="Border" Background="Gray" Margin="2,0" BorderBrush="White" BorderThickness="1,1,1,1" CornerRadius="6,6,0,0">
+                                                <ContentPresenter x:Name="ContentSite"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Center"
+                                        ContentSource="Header"
+                                        Margin="4,-2"/>
+                                            </Border>
+                                        </Grid>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="Panel" Property="Background" Value="Transparent" />
+                                            </Trigger>
+                                            <Trigger Property="IsSelected" Value="False">
+                                                <Setter TargetName="Panel" Property="Background" Value="Transparent" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </TabControl.Resources>
+                    <TabItem>
+                        <!-- Card Edit Tab-->
+                        <TabItem.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Card" Foreground="Yellow" FontWeight="Bold">
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                                <Button Click="SaveCard" Background="Transparent" IsTabStop="False" 
+                                    Visibility="{Binding Path=CardHasChanges, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                    ToolTip="Save Card Changes">
+                                    <Image Name="CardTabSaveIcon" Source="Images/accept.png" Width="16" Height="16"/>
+                                </Button>
+                            </StackPanel>
+                        </TabItem.Header>
+                        <Grid x:Name="CardEditGrid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" DataContext="{StaticResource CurrentCard}">
+                            <Grid.Background>
+                                <ImageBrush Stretch="UniformToFill" ImageSource="Images/ySLRVs.jpg" />
+                            </Grid.Background>
+                            <Grid Margin="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="LabelColumn1"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="1*"/>
+                                    <RowDefinition Height="3*"/>
+                                </Grid.RowDefinitions>
+                                <Grid Grid.Column="2" Grid.Row="0" Grid.ColumnSpan="2" HorizontalAlignment="Right" Margin="0,0,10,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Content="Id:" Grid.Column="0" HorizontalAlignment="Right" Margin="3" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                        <Label.Effect>
+                                            <DropShadowEffect/>
+                                        </Label.Effect>
+                                    </Label>
+                                    <TextBox x:Name="idTextBox" Grid.Column="1" HorizontalAlignment="Left" Height="23" Margin="3" 
+                                        Text="{Binding Id, Mode=OneWay}" VerticalAlignment="Center" Width="60" TextAlignment="Center" 
+                                        IsReadOnly="True" Opacity="0.7"
+                                        ToolTip="Unique Card ID#">
+                                        <TextBox.Effect>
+                                            <DropShadowEffect/>
+                                        </TextBox.Effect>
+                                    </TextBox>
+                                    <Label Content="Card Level:" Grid.Column="2" HorizontalAlignment="Right" Margin="3" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                        <Label.Effect>
+                                            <DropShadowEffect/>
+                                        </Label.Effect>
+                                    </Label>
+                                    <ComboBox x:Name="cardLevelTextBox" Grid.Column="3" HorizontalAlignment="Left" Height="23" Margin="3" 
+                                        Text="{Binding CardLevel, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" 
+                                        VerticalAlignment="Center" Width="48" Opacity="0.7" SelectionChanged="cardLevelTextBox_SelectionChanged"
+                                        ToolTip="Card Level is an indication of power and value.">
+                                        <ComboBoxItem Content="1"/>
+                                        <ComboBoxItem Content="2"/>
+                                        <ComboBoxItem Content="3"/>
+                                        <ComboBoxItem Content="4"/>
+                                        <ComboBoxItem Content="5"/>
+                                        <ComboBox.Effect>
+                                            <DropShadowEffect/>
+                                        </ComboBox.Effect>
+                                    </ComboBox>
+                                </Grid>
+                                <Label Content="Name:" Grid.Column="0" HorizontalAlignment="Right" Margin="3" Grid.Row="0" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                                <TextBox x:Name="nameTextBox" Grid.Column="1" HorizontalAlignment="Stretch" Height="23" Margin="3" Grid.Row="0" Background="Goldenrod"
+                                 Text="{Binding Name, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" 
+                                    VerticalAlignment="Center" Opacity="0.7" TextChanged="CardTextElementChanged"
+                                    ToolTip="Card Name">
+                                    <TextBox.Effect>
+                                        <DropShadowEffect/>
+                                    </TextBox.Effect>
+                                </TextBox>
+
+                                <Label Content="Types:" Grid.Column="0" HorizontalAlignment="Right" Margin="3" Grid.Row="1" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                                <TextBlock Name="TypeBox" Grid.Column="1" Margin="3" Grid.Row="1" Grid.ColumnSpan="3" AllowDrop="True" Drop="TypeBox_Drop" DragEnter="Type_DragEnter"
+                                    Text=" * Drag Card Types Here *" VerticalAlignment="Center" TextAlignment="Center" 
+                                    Background="LightSeaGreen" Height="23" Opacity="0.7"
+                                    ToolTip="Card Types determine how a card is played and what rules apply to it.">
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect/>
+                                    </TextBlock.Effect>
+                                </TextBlock>
+                                <Label Content="Flavor:" Grid.Column="0" HorizontalAlignment="Right" Margin="3" Grid.Row="2" 
+                                    VerticalAlignment="Center" FontWeight="Bold" Foreground="White"
+                                    >
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                                <TextBox x:Name="flavorTextTextBox" Grid.Column="1" Grid.ColumnSpan="3" HorizontalAlignment="Stretch"
+                                    Height="48" Margin="3" Grid.Row="2" Text="{Binding FlavorText, Mode=TwoWay,
+                                    NotifyOnValidationError=true, ValidatesOnExceptions=true}" VerticalAlignment="Center" Opacity="0.7"
+                                    TextChanged="CardTextElementChanged"
+                                    ToolTip="Flavor text is descriptive text displayed to the player.">
+                                    <TextBox.Effect>
+                                        <DropShadowEffect/>
+                                    </TextBox.Effect>
+                                </TextBox>
+                                <Label Content="Cost:" Grid.Column="0" HorizontalAlignment="Right" Margin="3" Grid.Row="3" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                                <StackPanel Orientation="Horizontal" Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="3"
+                                    ToolTip="Cost required to play this card. This may include life points, cards discarded, and/or cards sacrificed.">
+                                    <Label Content="Pay" Margin="0,3,0,3" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                        <Label.Effect>
+                                            <DropShadowEffect/>
+                                        </Label.Effect>
+                                    </Label>
+                                    <TextBox x:Name="costTextBox" HorizontalAlignment="Left" Height="23" Margin="3" Text="{Binding Cost, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" VerticalAlignment="Center" Width="30" Opacity="0.7" TextChanged="CardTextElementChanged">
+                                        <TextBox.Effect>
+                                            <DropShadowEffect/>
+                                        </TextBox.Effect>
+                                    </TextBox>
+                                    <Label Content="Life,  Discard" Margin="0,3,0,3" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                        <Label.Effect>
+                                            <DropShadowEffect/>
+                                        </Label.Effect>
+                                    </Label>
+                                    <ComboBox x:Name="DiscardCountCombo" HorizontalAlignment="Left" Height="23" Margin="3" 
+                                        VerticalAlignment="Center" Width="40" Opacity="0.7" SelectionChanged="DiscardCountCombo_SelectionChanged"
+                                        SelectedValue="{Binding DiscardCount,Mode=TwoWay}" SelectedValuePath="Content">
+                                        <ComboBox.Effect>
+                                            <DropShadowEffect/>
+                                        </ComboBox.Effect>
+                                        <ComboBoxItem Content="0"/>
+                                        <ComboBoxItem Content="1"/>
+                                        <ComboBoxItem Content="2"/>
+                                        <ComboBoxItem Content="3"/>
+                                        <ComboBoxItem Content="4"/>
+                                        <ComboBoxItem Content="5"/>
+                                    </ComboBox>
+                                    <TextBlock Name="DiscardTypeBox" Grid.Column="1" Margin="3" Grid.Row="1" Grid.ColumnSpan="3" 
+                                   AllowDrop="True" Drop="DiscardTypeBox_Drop" DragEnter="Type_DragEnter" 
+                                   Text="{Binding DiscardType, Mode=TwoWay,Converter={StaticResource CardTypeNameLookup}}" VerticalAlignment="Center" TextAlignment="Center" Background="LightSeaGreen" Height="23" Opacity="0.7" Width="150">
+                                        <TextBlock.Effect>
+                                            <DropShadowEffect/>
+                                        </TextBlock.Effect>
+                                    </TextBlock>
+                                    <Label Content="cards,  Sacrifice" Margin="0,3,0,3" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                        <Label.Effect>
+                                            <DropShadowEffect/>
+                                        </Label.Effect>
+                                    </Label>
+                                    <ComboBox x:Name="SacrificeCountCombo" HorizontalAlignment="Left" Height="23" Margin="3" 
+                                        SelectedValue="{Binding SacrificeCount, Mode=TwoWay}" SelectedValuePath="Content" 
+                                        VerticalAlignment="Center" Width="40" Opacity="0.75" SelectionChanged="SacrificeCountCombo_SelectionChanged">
+                                        <ComboBox.Effect>
+                                            <DropShadowEffect/>
+                                        </ComboBox.Effect>
+                                        <ComboBoxItem Content="0"/>
+                                        <ComboBoxItem Content="1"/>
+                                        <ComboBoxItem Content="2"/>
+                                        <ComboBoxItem Content="3"/>
+                                        <ComboBoxItem Content="4"/>
+                                        <ComboBoxItem Content="5"/>
+                                    </ComboBox>
+                                    <TextBlock Name="SacrificeTypeBox" Grid.Column="1" Margin="3" Grid.Row="1" Grid.ColumnSpan="3" AllowDrop="True" Drop="SacrificeTypeBox_Drop"  DragEnter="Type_DragEnter"
+                                        Text="{Binding SacrificeType, Mode=TwoWay,Converter={StaticResource CardTypeNameLookup}}" 
+                                        VerticalAlignment="Center" TextAlignment="Center" Background="LightSeaGreen" Height="23" Opacity="0.7" 
+                                        Width="150">
+                                        
+                                        <TextBlock.Effect>
+                                            <DropShadowEffect/>
+                                        </TextBlock.Effect>
+                                    </TextBlock>
+                                    <Label Content="cards." Margin="0,3,3,3" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                        <Label.Effect>
+                                            <DropShadowEffect/>
+                                        </Label.Effect>
+                                    </Label>
+                                </StackPanel>
+                                <Label Content="Att / Def:" Grid.Column="0" HorizontalAlignment="Right" Margin="3" Grid.Row="4" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                                <StackPanel Orientation="Horizontal" Grid.Column="1" Grid.Row="4">
+                                    <TextBox x:Name="attackTextBox" Grid.Column="1" HorizontalAlignment="Left" Height="23" Margin="3" 
+                                        Width="30" Text="{Binding Attack, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" 
+                                        VerticalAlignment="Center" TextAlignment="Center" Opacity="0.7" TextChanged="CardTextElementChanged"
+                                        ToolTip="Attack power represents the amount of damage a card does when it attacks.">
+                                        <TextBox.Effect>
+                                            <DropShadowEffect/>
+                                        </TextBox.Effect>
+                                    </TextBox>
+                                    <TextBlock Text="/" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                        <TextBlock.Effect>
+                                            <DropShadowEffect/>
+                                        </TextBlock.Effect>
+                                    </TextBlock>
+                                    <TextBox x:Name="defenseTextBox" Grid.Column="1" HorizontalAlignment="Left" Height="23" Margin="3" 
+                                        Width="30" Text="{Binding Defense, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" 
+                                        VerticalAlignment="Center" TextAlignment="Center" Opacity="0.7" TextChanged="CardTextElementChanged" 
+                                        ToolTip="Defense represents how much damage a card can sustain before it is destroyed.">
+                                        <TextBox.Effect>
+                                            <DropShadowEffect/>
+                                        </TextBox.Effect>
+                                    </TextBox>
+                                </StackPanel>
+                                <Label Content="Speed / Reach:" Grid.Column="2" Grid.Row="4" HorizontalAlignment="Right" Margin="3" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                                <Grid Grid.Column="3" Grid.Row="4">
+                                    <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Stretch">
+                                        <TextBox x:Name="speedTextBox" HorizontalAlignment="Left" Height="23" Margin="3" 
+                                            Text="{Binding Speed, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" 
+                                            VerticalAlignment="Center" Width="30" TextAlignment="Center" Opacity="0.7" 
+                                            TextChanged="CardTextElementChanged" 
+                                            ToolTip="Speed indicates how many hexes a card can move each turn.">
+                                            <TextBox.Effect>
+                                                <DropShadowEffect/>
+                                            </TextBox.Effect>
+                                        </TextBox>
+                                        <TextBlock Text="/" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                            <TextBlock.Effect>
+                                                <DropShadowEffect/>
+                                            </TextBlock.Effect>
+                                        </TextBlock>
+                                        <TextBox x:Name="reachTextBox" HorizontalAlignment="Left" Height="23" Margin="3" 
+                                            Text="{Binding Reach, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" 
+                                            VerticalAlignment="Center" Width="30" TextAlignment="Center" Opacity="0.7" 
+                                            TextChanged="CardTextElementChanged"
+                                            ToolTip="Reach indicates how far a card's attack reaches.">
+                                            <TextBox.Effect>
+                                                <DropShadowEffect/>
+                                            </TextBox.Effect>
+                                        </TextBox>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Label Content="Version:" HorizontalAlignment="Right" Margin="3" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                            <Label.Effect>
+                                                <DropShadowEffect/>
+                                            </Label.Effect>
+                                        </Label>
+                                        <TextBox x:Name="versionTextBox" Grid.Column="1" HorizontalAlignment="Left" Height="23" Margin="3" 
+                                            Grid.Row="10" Text="{Binding Version, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" 
+                                            VerticalAlignment="Center" Width="120" Opacity="0.7" TextChanged="CardTextElementChanged"
+                                            ToolTip="Card version is used to group cards as they are added or revised.">
+                                            <TextBox.Effect>
+                                                <DropShadowEffect/>
+                                            </TextBox.Effect>
+                                        </TextBox>
+                                    </StackPanel>
+                                </Grid>
+                                <Label Content="Notes:" Grid.Column="0" HorizontalAlignment="Right" Margin="3" Grid.Row="5" 
+                                    VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                                <TextBox x:Name="notesTextBox" Grid.Column="1" Grid.ColumnSpan="3" Grid.Row="5"
+                                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="3" 
+                                    Text="{Binding Notes, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}"  
+                                    Opacity="0.7" TextChanged="CardTextElementChanged"
+                                    ToolTip="Development info, balance ideas, etc. Not displayed to players.">
+                                    <TextBox.Effect>
+                                        <DropShadowEffect/>
+                                    </TextBox.Effect>
+                                </TextBox>
+                                <Label Content="Effects:" Grid.Column="0" HorizontalAlignment="Right" Margin="3" Grid.Row="7" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                                <TextBlock Name="EffectsBox" AllowDrop="True" Drop="EffectsBox_Drop" DragEnter="EffectsBox_DragEnter"
+                                Grid.Column="1" Grid.Row="7" Grid.ColumnSpan="3" Margin="3,10,3,0"
+                                Text=" * Drag Card Effects Here *" VerticalAlignment="Stretch"  TextAlignment="Center" Background="CornflowerBlue" Opacity="0.7"
+                                ToolTip="Card Effects applied to this card are listed here.">
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect/>
+                                    </TextBlock.Effect>
+                                </TextBlock>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+                    <TabItem>
+                        <!-- Card Effects Edit Tab -->
+                        <TabItem.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Card Effect" Foreground="Yellow" FontWeight="Bold">
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                                <Button Click="SaveCardEffect" Background="Transparent" IsTabStop="False" Visibility="{Binding CardEffectHasChanges, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <Image Name="CardEffectTabSaveIcon" Source="Images/accept.png" Width="16" Height="16"/>
+                                </Button>
+                            </StackPanel>
+                        </TabItem.Header>
+                        <Grid Grid.Column="1" Name="CardEffectEditGrid"  Grid.IsSharedSizeScope="True" DataContext="{StaticResource CurrentEffect}">
+                            <Grid.Background>
+                                <ImageBrush Stretch="UniformToFill" ImageSource="Images/dark-fantasy-backgrounds.jpg"/>
+                            </Grid.Background>
+                            <Grid Margin="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Label Content="Name:" Grid.Column="0" HorizontalAlignment="Right" Margin="3" Grid.Row="0" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                                <TextBox x:Name="ce_nameTextBox" Grid.Column="1" HorizontalAlignment="Stretch" Height="23" Margin="3" Grid.Row="0" Background="CornflowerBlue"
+                                 Text="{Binding Name, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" VerticalAlignment="Center" Opacity="0.7" TextChanged="CardEffectTextElementChanged">
+                                    <TextBox.Effect>
+                                        <DropShadowEffect/>
+                                    </TextBox.Effect>
+                                </TextBox>
+                                <Label Content="Id:" Grid.Column="2" HorizontalAlignment="Right" Margin="3" Grid.Row="0" VerticalAlignment="Center" Opacity="0.99" Foreground="White" FontWeight="Bold">
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                                <TextBox x:Name="ce_idTextBox" Grid.Column="3" HorizontalAlignment="Left" Height="23" Margin="3" Grid.Row="0" 
+                                    Text="{Binding Id, Mode=OneWay}" VerticalAlignment="Center" Width="60" Opacity="0.6"/>
+                                <Label Content="Effect Text:" Grid.Column="0" HorizontalAlignment="Right" Margin="3" Grid.Row="1" VerticalAlignment="Center" Opacity="0.99" Foreground="White" FontWeight="Bold">
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                                <TextBox x:Name="ce_effectTextTextBox" Grid.Column="1" Height="72" Margin="3,3,72,3" Grid.Row="1" 
+                                    Grid.ColumnSpan="3" Text="{Binding EffectText, Mode=TwoWay, NotifyOnValidationError=true, 
+                                    ValidatesOnExceptions=true}" VerticalAlignment="Center" IsReadOnly="True" Opacity="0.6" 
+                                    TextChanged="CardEffectTextElementChanged"/>
+
+                                <Label Content="Trigger:" Grid.Column="0" HorizontalAlignment="Right" Margin="3" Grid.Row="2" VerticalAlignment="Center" Opacity="0.99" Foreground="White" FontWeight="Bold">
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                                <ComboBox x:Name="ce_triggerComboBox" Grid.Column="1" Height="23" Margin="3" Grid.Row="2" 
+                                    VerticalAlignment="Center" HorizontalAlignment="Left" Width="300" Opacity="0.6" 
+                                    SelectedValue="{Binding EffectTrigger,Mode=TwoWay}" SelectedValuePath="Tag"
+                                    SelectionChanged="ce_triggerComboBox_SelectionChanged">
+                                    <ComboBox.Effect>
+                                        <DropShadowEffect/>
+                                    </ComboBox.Effect>
+                                </ComboBox>
+                                <Label Content="Trigger Target:" Grid.Column="2" HorizontalAlignment="Right" Margin="3" Grid.Row="2" VerticalAlignment="Center" Opacity="0.99" Foreground="White" FontWeight="Bold">
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                                <ComboBox x:Name="ce_triggerTargetComboBox" Grid.Column="3" Height="23" Margin="3" Grid.Row="2" 
+                                    VerticalAlignment="Center" HorizontalAlignment="Left" Width="300" Opacity="0.6" 
+                                    SelectedValue="{Binding TriggerTarget,Mode=TwoWay}" SelectedValuePath="Tag"
+                                    SelectionChanged="ce_triggerTargetComboBox_SelectionChanged">
+                                    <ComboBox.Effect>
+                                        <DropShadowEffect/>
+                                    </ComboBox.Effect>
+                                </ComboBox>
+
+                                <Label Content="Condition:" Grid.Column="0" HorizontalAlignment="Right" Margin="3" Grid.Row="3" VerticalAlignment="Center" Opacity="0.99" Foreground="White" FontWeight="Bold">
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                                <ComboBox x:Name="ce_conditionComboBox" Grid.Column="1" Height="23" Margin="3" Grid.Row="3" 
+                                    VerticalAlignment="Center" HorizontalAlignment="Left" Width="300" IsEditable="True" Opacity="0.6" 
+                                    SelectedValue="{Binding FireCondition, Mode=TwoWay}" SelectedValuePath="Tag"
+                                    SelectionChanged="ce_conditionComboBox_SelectionChanged">
+                                    <ComboBox.Effect>
+                                        <DropShadowEffect/>
+                                    </ComboBox.Effect>
+                                </ComboBox>
+                                <Label Content="Condition Value:" Grid.Column="2" HorizontalAlignment="Right" Margin="3" Grid.Row="3" VerticalAlignment="Center" Opacity="0.99" Foreground="White" FontWeight="Bold">
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                                <TextBox x:Name="ce_conditionValueTextBox" Grid.Column="3" HorizontalAlignment="Left" Height="23" Margin="3" 
+                                    Grid.Row="3" VerticalAlignment="Center" Width="300" Opacity="0.6"
+                                    Text="{Binding ConditionValue,Mode=TwoWay}"
+                                    TextChanged="CardEffectTextElementChanged">
+                                    <TextBox.Effect>
+                                        <DropShadowEffect/>
+                                    </TextBox.Effect>
+                                </TextBox>
+
+                                <Label Content="Target:" Grid.Column="0" HorizontalAlignment="Right" Margin="3" Grid.Row="4" 
+                                    VerticalAlignment="Center" Opacity="0.99" Foreground="White" FontWeight="Bold">
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                                <ComboBox x:Name="ce_targetComboBox" Grid.Column="1" Height="23" Margin="3" Grid.Row="4" 
+                                    VerticalAlignment="Center" HorizontalAlignment="Left" Width="300" Opacity="0.6" 
+                                    SelectionChanged="ce_targetComboBox_SelectionChanged"
+                                    SelectedValue="{Binding Target,Mode=TwoWay}" SelectedValuePath="Tag">
+                                    <ComboBox.Effect>
+                                        <DropShadowEffect/>
+                                    </ComboBox.Effect>
+                                </ComboBox>
+                                <Label Content="Duration:" Grid.Column="2" HorizontalAlignment="Right" Margin="3" Grid.Row="4" VerticalAlignment="Center" Opacity="0.99" Foreground="White" FontWeight="Bold">
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                                <ComboBox x:Name="ce_durationComboBox" Grid.Column="3" Height="23" Margin="3" Grid.Row="4" 
+                                    VerticalAlignment="Center" HorizontalAlignment="Left" Width="120" Opacity="0.6" 
+                                    SelectionChanged="ce_durationComboBox_SelectionChanged"
+                                    SelectedValue="{Binding Path=Duration}" SelectedValuePath="Tag">
+                                    <ComboBoxItem Content="Instant" Tag="0"/>
+                                    <ComboBoxItem Content="1 round" Tag="1"/>
+                                    <ComboBoxItem Content="2 rounds" Tag="2"/>
+                                    <ComboBoxItem Content="3 rounds" Tag="3"/>
+                                    <ComboBoxItem Content="4 rounds" Tag="4"/>
+                                    <ComboBoxItem Content="5 rounds" Tag="5"/>
+                                    <ComboBoxItem Content="Permanent" Tag="99"/>
+                                    <ComboBox.Effect>
+                                        <DropShadowEffect/>
+                                    </ComboBox.Effect>
+                                </ComboBox>
+
+                                <Label Content="Effect:" Grid.Column="0" HorizontalAlignment="Right" Margin="3" Grid.Row="5" 
+                                    VerticalAlignment="Center" Opacity="0.99" Foreground="White" FontWeight="Bold">
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                                <ComboBox x:Name="ce_effectComboBox" Grid.Column="1" Height="23" Margin="3" Grid.Row="5" 
+                                    VerticalAlignment="Center" HorizontalAlignment="Left" Width="300" Opacity="0.6"
+                                    SelectedValue="{Binding Effect,Mode=TwoWay}" SelectedValuePath="Tag"
+                                    SelectionChanged="ce_effectComboBox_SelectionChanged">
+                                    <ComboBox.Effect>
+                                        <DropShadowEffect/>
+                                    </ComboBox.Effect>
+                                </ComboBox>
+                                <Label Content="Value:" Grid.Column="2" HorizontalAlignment="Right" Margin="3" Grid.Row="5" VerticalAlignment="Center" Opacity="0.99" Foreground="White" FontWeight="Bold">
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                                <TextBox x:Name="ce_valueTextBox" Grid.Column="3" HorizontalAlignment="Left" Height="23" Margin="3" 
+                                    Grid.Row="5" Text="{Binding Value, Mode=TwoWay}" VerticalAlignment="Center" Width="120" Opacity="0.6" 
+                                    TextChanged="CardEffectTextElementChanged">
+                                    <TextBox.Effect>
+                                        <DropShadowEffect/>
+                                    </TextBox.Effect>
+                                </TextBox>
+
+
+                                <Label Content="Cost:" Grid.Column="0" HorizontalAlignment="Right" Margin="3" Grid.Row="6" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                    <Label.Effect>
+                                        <DropShadowEffect/>
+                                    </Label.Effect>
+                                </Label>
+                                <Border BorderBrush="White" BorderThickness="1" CornerRadius="8" Background="Transparent" Grid.Column="1" Grid.Row="6" Grid.ColumnSpan="3">
+                                    <WrapPanel Orientation="Horizontal">
+                                        <WrapPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Label Content="Pay" Margin="0,3,0,3" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                                    <Label.Effect>
+                                                        <DropShadowEffect/>
+                                                    </Label.Effect>
+                                                </Label>
+                                                <TextBox x:Name="ce_costTextBox" HorizontalAlignment="Left" Height="23" Margin="3" 
+                                                    Text="{Binding Cost, Mode=TwoWay, NotifyOnValidationError=true, ValidatesOnExceptions=true}" 
+                                                    VerticalAlignment="Center" Width="30" Opacity="0.7" TextChanged="CardEffectTextElementChanged">
+                                                    <TextBox.Effect>
+                                                        <DropShadowEffect/>
+                                                    </TextBox.Effect>
+                                                </TextBox>
+                                                <Label Content="Life" Margin="0,3" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                                    <Label.Effect>
+                                                        <DropShadowEffect/>
+                                                    </Label.Effect>
+                                                </Label>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <CheckBox Name="ce_DepleteCheckBox"  IsChecked="{Binding Deplete, Mode=TwoWay}" 
+                                                          Margin="3" VerticalAlignment="Center" Checked="ce_DepleteCheckBox_Checked"/>
+                                                <Label Content="Deplete" Margin="0,3,3,3" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                                    <Label.Effect>
+                                                        <DropShadowEffect/>
+                                                    </Label.Effect>
+                                                </Label>
+                                            </StackPanel>
+                                        </WrapPanel>
+                                        <WrapPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Label Content="Discard" Margin="0,3,0,3" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                                    <Label.Effect>
+                                                        <DropShadowEffect/>
+                                                    </Label.Effect>
+                                                </Label>
+                                                <ComboBox x:Name="ce_DiscardCountCombo" HorizontalAlignment="Left" Height="23" Margin="3" 
+                                        VerticalAlignment="Center" Width="40" Opacity="0.7" SelectionChanged="ce_DiscardCountCombo_SelectionChanged"
+                                        SelectedValue="{Binding DiscardCount,Mode=TwoWay}" SelectedValuePath="Content">
+                                                    <ComboBox.Effect>
+                                                        <DropShadowEffect/>
+                                                    </ComboBox.Effect>
+                                                    <ComboBoxItem Content="0"/>
+                                                    <ComboBoxItem Content="1"/>
+                                                    <ComboBoxItem Content="2"/>
+                                                    <ComboBoxItem Content="3"/>
+                                                    <ComboBoxItem Content="4"/>
+                                                    <ComboBoxItem Content="5"/>
+                                                </ComboBox>
+                                                <TextBlock Name="ce_DiscardTypeBox" Margin="3" 
+                                                    AllowDrop="True" Drop="ce_DiscardTypeBox_Drop" DragEnter="Type_DragEnter" 
+                                                    Text="{Binding DiscardType, Mode=TwoWay, Converter={StaticResource CardTypeNameLookup}}" 
+                                                    VerticalAlignment="Center" TextAlignment="Center" Background="LightSeaGreen" Height="23" 
+                                                    Opacity="0.7" Width="150">
+                                                    <TextBlock.Effect>
+                                                        <DropShadowEffect/>
+                                                    </TextBlock.Effect>
+                                                </TextBlock>
+                                                <Label Content="cards" Margin="0,3,0,3" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                                    <Label.Effect>
+                                                        <DropShadowEffect/>
+                                                    </Label.Effect>
+                                                </Label>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Label Content="Sacrifice" Margin="0,3,0,3" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                                    <Label.Effect>
+                                                        <DropShadowEffect/>
+                                                    </Label.Effect>
+                                                </Label>
+                                                <ComboBox x:Name="ce_SacrificeCountCombo" HorizontalAlignment="Left" Height="23" Margin="3"
+                                                    SelectedValue="{Binding SacrificeCount, Mode=TwoWay}" SelectedValuePath="Content" 
+                                                    VerticalAlignment="Center" Width="40" Opacity="0.75" SelectionChanged="ce_SacrificeCountCombo_SelectionChanged">
+                                                    <ComboBox.Effect>
+                                                        <DropShadowEffect/>
+                                                    </ComboBox.Effect>
+                                                    <ComboBoxItem Content="0"/>
+                                                    <ComboBoxItem Content="1"/>
+                                                    <ComboBoxItem Content="2"/>
+                                                    <ComboBoxItem Content="3"/>
+                                                    <ComboBoxItem Content="4"/>
+                                                    <ComboBoxItem Content="5"/>
+                                                </ComboBox>
+                                                <TextBlock Name="ce_SacrificeTypeBox" Margin="3" AllowDrop="True" Drop="ce_SacrificeTypeBox_Drop"  DragEnter="Type_DragEnter"
+                                                    Text="{Binding SacrificeType,Mode=TwoWay,Converter={StaticResource CardTypeNameLookup}}" 
+                                                    VerticalAlignment="Center" TextAlignment="Center" Background="LightSeaGreen" Height="23" 
+                                                    Opacity="0.7" Width="150">
+                                                    <TextBlock.Effect>
+                                                        <DropShadowEffect/>
+                                                    </TextBlock.Effect>
+                                                </TextBlock>
+                                                <Label Content="cards" Margin="0,3,3,3" VerticalAlignment="Center" FontWeight="Bold" Foreground="White">
+                                                    <Label.Effect>
+                                                        <DropShadowEffect/>
+                                                    </Label.Effect>
+                                                </Label>
+                                            </StackPanel>
+                                        </WrapPanel>
+                                    </WrapPanel>
+                                </Border>
+                            </Grid>
+                        </Grid>
+                    </TabItem>
+                </TabControl>
+            </Grid>
+        </Grid>
+    </DockPanel>
 </Window>

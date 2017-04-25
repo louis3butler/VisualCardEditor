@@ -76,48 +76,23 @@
     <Compile Include="AddCardTypeWindow.xaml.cs">
       <DependentUpon>AddCardTypeWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Card.cs">
-      <DependentUpon>ChampionsDB.tt</DependentUpon>
-    </Compile>
-    <Compile Include="CardEffect.cs">
-      <DependentUpon>ChampionsDB.tt</DependentUpon>
-    </Compile>
-    <Compile Include="CardEffectsJoin.cs">
-      <DependentUpon>ChampionsDB.tt</DependentUpon>
-    </Compile>
-    <Compile Include="CardType.cs">
-      <DependentUpon>ChampionsDB.tt</DependentUpon>
-    </Compile>
+    <Compile Include="BuildEffectText.cs" />
+    <Compile Include="Card.cs" />
+    <Compile Include="CardEffect.cs" />
+    <Compile Include="CardEffectsJoin.cs" />
+    <Compile Include="CardType.cs" />
     <Compile Include="CardTypeLookup.cs" />
-    <Compile Include="CardTypesJoin.cs">
-      <DependentUpon>ChampionsDB.tt</DependentUpon>
-    </Compile>
-    <Compile Include="ChampionsDB.Context.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ChampionsDB.Context.tt</DependentUpon>
-    </Compile>
-    <Compile Include="ChampionsDB.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ChampionsDB.tt</DependentUpon>
-    </Compile>
-    <Compile Include="ChampionsDB.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ChampionsDB.edmx</DependentUpon>
-    </Compile>
-    <Compile Include="Condition.cs">
-      <DependentUpon>ChampionsDB.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Effect.cs">
-      <DependentUpon>ChampionsDB.tt</DependentUpon>
-    </Compile>
-    <Compile Include="EffectTrigger.cs">
-      <DependentUpon>ChampionsDB.tt</DependentUpon>
-    </Compile>
+    <Compile Include="CardTypesJoin.cs" />
+    <Compile Include="ChampionsDB.cs" />
+    <Compile Include="Condition.cs" />
+    <Compile Include="Effect.cs" />
+    <Compile Include="EffectTarget.cs" />
+    <Compile Include="EffectTrigger.cs" />
     <Compile Include="EffectTriggerLookup.cs" />
     <Compile Include="Log.cs" />
+    <Compile Include="TargetingControl.xaml.cs">
+      <DependentUpon>TargetingControl.xaml</DependentUpon>
+    </Compile>
     <Page Include="AddCardTypeWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -134,6 +109,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="TargetingControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -170,13 +149,6 @@
     <Resource Include="Images\Sky1.jpg" />
     <Resource Include="Images\Sky2.jpg" />
     <Resource Include="Images\ss124.gif" />
-    <EntityDeploy Include="ChampionsDB.edmx">
-      <Generator>EntityModelCodeGenerator</Generator>
-      <LastGenOutput>ChampionsDB.Designer.cs</LastGenOutput>
-    </EntityDeploy>
-    <None Include="ChampionsDB.edmx.diagram">
-      <DependentUpon>ChampionsDB.edmx</DependentUpon>
-    </None>
     <None Include="packages.config" />
     <None Include="Properties\DataSources\Card.datasource" />
     <None Include="Properties\Settings.settings">
@@ -217,18 +189,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\accept.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="ChampionsDB.Context.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>ChampionsDB.edmx</DependentUpon>
-      <LastGenOutput>ChampionsDB.Context.cs</LastGenOutput>
-    </Content>
-    <Content Include="ChampionsDB.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <DependentUpon>ChampionsDB.edmx</DependentUpon>
-      <LastGenOutput>ChampionsDB.cs</LastGenOutput>
-    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Fody.1.29.2\build\dotnet\Fody.targets" Condition="Exists('..\packages\Fody.1.29.2\build\dotnet\Fody.targets')" />

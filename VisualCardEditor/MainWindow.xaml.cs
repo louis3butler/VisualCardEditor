@@ -21,7 +21,7 @@ using PropertyChanged;
 namespace VisualCardEditor
 {
     [ImplementPropertyChanged]
-    public class TabSaveStatus
+    public partial class TabSaveStatus
     {
         bool cardHasChanges;
         bool cardEffectHasChanges;
@@ -56,14 +56,22 @@ namespace VisualCardEditor
     public partial class MainWindow : Window
     {
         Point dragStart;
+        Brush hlBrush = new SolidColorBrush(Colors.Black);
         ChampionsDB db;
         Card CurrentCard = new Card();
         CardEffect CurrentEffect = new CardEffect();
-        TabSaveStatus TabStatus = new TabSaveStatus();
+        EffectTarget CurrentTrigger = new EffectTarget();
+        EffectTarget CurrentTarget = new EffectTarget();
+        public TabSaveStatus TabStatus = new TabSaveStatus();
 
         ObservableCollection<Card> CardsList;
         ObservableCollection<CardType> CardTypesList;
         ObservableCollection<CardEffect> CardEffectsList;
+        ObservableCollection<EffectTrigger> EffectTriggersList;
+        ObservableCollection<Effect> EffectsList;
+
+        List<int> ThisCardsTypesList, DeletedTypes, AddedTypes;
+        List<int> ThisCardsEffectsList, DeletedEffects, AddedEffects;
 
         #region Initialization
         public MainWindow()
@@ -78,6 +86,8 @@ namespace VisualCardEditor
             FillCardsList();
             FillCardTypesList();
             FillCardEffectsList();
+            FillTriggersList();
+            FillEffectsList();
 
             if (CardsList.Count() == 0)
             {
@@ -85,7 +95,7 @@ namespace VisualCardEditor
                 FillCardsList();
             }
 
-            if (CardEffectsList.Count()==0)
+            if (CardEffectsList.Count() == 0)
             {
                 AddCardEffect("<New Card Effect");
                 FillCardEffectsList();
@@ -102,6 +112,10 @@ namespace VisualCardEditor
             LoadEffectsList();
             LoadTargetsList();
 
+            CeTrigger.DataContext = CurrentTrigger;
+            CeTarget.DataContext = CurrentTarget;
+            CeTrigger.InfoChanged += TargetDataChanged;
+            CeTarget.InfoChanged += TargetDataChanged;
             TabStatus.CardHasChanges = false;
             TabStatus.CardEffectHasChanges = false;
 
@@ -116,6 +130,16 @@ namespace VisualCardEditor
             CardsList = new ObservableCollection<Card>(result);
             cardsListView.DataContext = CardsList;
         }
+        private void FillTriggersList()
+        {
+            var result = db.EffectTriggers.OrderBy(c => c.FireText);
+            EffectTriggersList = new ObservableCollection<EffectTrigger>(result);
+        }
+        private void FillEffectsList()
+        {
+            var result = db.Effects.OrderBy(c => c.Name);
+            EffectsList = new ObservableCollection<Effect>(result);
+        }
         private void FillCardTypesList()
         {
             var result = db.CardTypes.OrderBy(c => c.Name);
@@ -129,7 +153,7 @@ namespace VisualCardEditor
             cardEffectsListView.DataContext = CardEffectsList;
         }
         #endregion LISTFILL
-        
+
         #region DragDrop
         private void TypeBox_Drop(object sender, DragEventArgs e)
         {
@@ -144,8 +168,14 @@ namespace VisualCardEditor
                         CardTypesJoin ctj = db.CardTypesJoins.Create();
                         ctj.Card = CurrentCard.Id;
                         ctj.CardType = i;
-                        db.Entry(ctj).State = System.Data.Entity.EntityState.Added;
-                        db.SaveChanges();
+                        if (!ThisCardsTypesList.Contains(ctj.CardType))
+                        {
+                            AddedTypes.Add(ctj.CardType);
+                            ThisCardsTypesList.Add(ctj.CardType);
+                        }
+
+                        //                        db.Entry(ctj).State = System.Data.Entity.EntityState.Added;
+                        //                        db.SaveChanges();
                     }
                     catch (Exception ex)
                     {
@@ -253,8 +283,13 @@ namespace VisualCardEditor
                         CardEffectsJoin cej = db.CardEffectsJoins.Create();
                         cej.Card = CurrentCard.Id;
                         cej.CardEffect = i;
-                        db.Entry(cej).State = System.Data.Entity.EntityState.Added;
-                        db.SaveChanges();
+                        if (!ThisCardsEffectsList.Contains(cej.CardEffect))
+                        {
+                            ThisCardsEffectsList.Add(cej.CardEffect);
+                            AddedEffects.Add(cej.CardEffect);
+                        }
+                        //                        db.Entry(cej).State = System.Data.Entity.EntityState.Added;
+                        //                        db.SaveChanges();
                     }
                     catch (Exception ex)
                     {
@@ -318,7 +353,7 @@ namespace VisualCardEditor
                     int i = Convert.ToInt32(obj);
                     CurrentEffect.SacrificeType = i;
                 }
-                CurrentEffect.BuildEffectText();
+                BuildEffectText();
                 TabStatus.CardEffectHasChanges = true;
             }
         }
@@ -332,7 +367,7 @@ namespace VisualCardEditor
                 {
                     CurrentEffect.DiscardType = Convert.ToInt32(obj);
                 }
-                CurrentEffect.BuildEffectText();
+                BuildEffectText();
                 TabStatus.CardEffectHasChanges = true;
             }
         }
@@ -363,6 +398,7 @@ namespace VisualCardEditor
                     NavigateUri = new Uri(string.Format("{0},{1}", a.Card, a.CardType), UriKind.Relative),
                 };
                 hl.Click += remove_ctj;
+                hl.Foreground = hlBrush;
                 if (lastgroup == a.TypeGroup)
                 {
                     TypeBox.Inlines.Add(", ");
@@ -380,37 +416,51 @@ namespace VisualCardEditor
             var link = (Hyperlink)sender;
             char[] delimiterChars = { ' ', ',', '.', ':', '\t' };
             string[] s = link.NavigateUri.ToString().Split(delimiterChars);
+
             int cardnum = Convert.ToInt32(s[0]);
             int cardtypenum = Convert.ToInt32(s[1]);
-            CardTypesJoin ctj = (from CardTypesJoin tmp in db.CardTypesJoins where tmp.Card == cardnum && tmp.CardType == cardtypenum select tmp).FirstOrDefault();
-            db.Entry(ctj).State = System.Data.Entity.EntityState.Deleted;
-            db.SaveChanges();
+            CardTypesJoin ctj = new CardTypesJoin();
+            ctj.Card = cardnum;
+            ctj.CardType = cardtypenum;
+            ThisCardsTypesList.Remove(ctj.CardType);
+            if (!AddedTypes.Remove(ctj.CardType)) DeletedTypes.Add(ctj.CardType);
+            //            CardTypesJoin ctj = (from CardTypesJoin tmp in db.CardTypesJoins where tmp.Card == cardnum && tmp.CardType == cardtypenum select tmp).FirstOrDefault();
+            //            db.Entry(ctj).State = System.Data.Entity.EntityState.Deleted;
+            //            db.SaveChanges();
+
             BuildCardTypesJoinStr();
             TabStatus.CardHasChanges = true;
         }
 
         private void BuildCardEffectsJoinStr()
         {
-            var resultList =
-                from cej in db.CardEffectsJoins
-                join CardEffect ce in db.CardEffects
-                on cej.CardEffect equals ce.Id
-                where cej.Card == CurrentCard.Id
-                orderby ce.Effect
-                select new { ce.EffectText, cej.CardEffect };
+
+            //var resultList =
+            //    from cej in db.CardEffectsJoins
+            //    join CardEffect ce in db.CardEffects
+            //    on cej.CardEffect equals ce.Id
+            //    where cej.Card == CurrentCard.Id
+            //    orderby ce.Effect
+            //    select new { ce.EffectText, cej.CardEffect };
+            
             EffectsBox.Inlines.Clear();
-            if (resultList.Count() == 0)
+            if (ThisCardsEffectsList.Count() == 0)
             {
                 EffectsBox.Text = "* Drag Effects Here *";
                 return;
             }
-            foreach (var a in resultList)
+            foreach (var j in ThisCardsEffectsList)
             {
+                CardEffect a = CardEffectsList.First(z => z.Id == j);
                 Hyperlink hl = new Hyperlink(new Run(a.EffectText))
                 {
-                    NavigateUri = new Uri(a.CardEffect.ToString(), UriKind.Relative),
+                    NavigateUri = new Uri(j.ToString(), UriKind.Relative),
                 };
+
                 hl.Click += remove_cej;
+                hl.Foreground = hlBrush;
+                //hl.FontSize = FontSize = 12;
+                //hl.FontWeight = FontWeights.Bold;
                 EffectsBox.Inlines.Add(hl);
                 EffectsBox.Inlines.Add("\n");
             }
@@ -422,9 +472,15 @@ namespace VisualCardEditor
             int cardeffectsnum = Convert.ToInt32(link.NavigateUri.ToString());
             using (ChampionsDB db = new ChampionsDB())
             {
-                CardEffectsJoin ctj = (from CardEffectsJoin tmp in db.CardEffectsJoins where tmp.Card == cardnum && tmp.CardEffect == cardeffectsnum select tmp).FirstOrDefault();
-                db.Entry(ctj).State = System.Data.Entity.EntityState.Deleted;
-                db.SaveChanges();
+                CardEffectsJoin cej = new CardEffectsJoin();
+                cej.Card = cardnum;
+                cej.CardEffect = cardeffectsnum;
+                ThisCardsEffectsList.Remove(cej.CardEffect);
+                AddedEffects.Remove(cej.CardEffect);
+                DeletedEffects.Add(cej.CardEffect);
+                //                CardEffectsJoin ctj = (from CardEffectsJoin tmp in db.CardEffectsJoins where tmp.Card == cardnum && tmp.CardEffect == cardeffectsnum select tmp).FirstOrDefault();
+                //                db.Entry(ctj).State = System.Data.Entity.EntityState.Deleted;
+                //                db.SaveChanges();
             }
             BuildCardEffectsJoinStr();
             TabStatus.CardHasChanges = true;
@@ -469,16 +525,23 @@ namespace VisualCardEditor
             }
             return ct;
         }
-        
+
         private CardEffect AddCardEffect(string sNewName)
         {
             CardEffect ce = null;
+            EffectTarget trig, tgt;
             try
             {
+                trig = db.EffectTargets.Create();
+                tgt = db.EffectTargets.Create();
+                db.Entry(trig).State = EntityState.Added;
+                db.Entry(tgt).State = EntityState.Added;
+                db.SaveChanges();
                 ce = db.CardEffects.Create();
+                ce.TriggerTarget = trig.Id;
+                ce.EffectTarget = tgt.Id;
                 ce.Name = sNewName;
-                ce.EffectText = "";
-                ce.Value = "";
+                ce.EffectText = "EffectText";
                 db.Entry(ce).State = EntityState.Added;
                 db.SaveChanges();
             }
@@ -489,7 +552,7 @@ namespace VisualCardEditor
             }
             return ce;
         }
-        
+
         private int DeleteCard(Card c)
         {
             int id = c.Id;
@@ -538,15 +601,21 @@ namespace VisualCardEditor
         }
 
         #endregion AddDelete
-        
+
         #region EventHandlers_SelectionChanged
+
+        private void TargetDataChanged(object sender, RoutedEventArgs e)
+        {
+            BuildEffectText();
+            TabStatus.CardEffectHasChanges = true;
+        }
         private void cardsListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
         }
-        
+
         private void ce_effectComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            CurrentEffect.BuildEffectText();
+            BuildEffectText();
             TabStatus.CardEffectHasChanges = true;
         }
 
@@ -561,19 +630,19 @@ namespace VisualCardEditor
 
         private void ce_targetComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            CurrentEffect.BuildEffectText();
+            BuildEffectText();
             TabStatus.CardEffectHasChanges = true;
         }
 
         private void ce_triggerComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            CurrentEffect.BuildEffectText();
+            BuildEffectText();
             TabStatus.CardEffectHasChanges = true;
         }
 
         private void ce_conditionComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            CurrentEffect.BuildEffectText();
+            BuildEffectText();
             TabStatus.CardEffectHasChanges = true;
         }
 
@@ -584,8 +653,9 @@ namespace VisualCardEditor
         {
             ce_effectComboBox.Items.Clear();
             ComboBoxItem cbi = new ComboBoxItem();
-            var result = from Effect eff in db.Effects orderby eff.Name select eff;
-            foreach (Effect e in result)
+            //var result = from Effect eff in db.Effects orderby eff.Name select eff;
+            //foreach (Effect e in result)
+            foreach (Effect e in EffectsList)
             {
                 cbi = new ComboBoxItem();
 
@@ -611,38 +681,21 @@ namespace VisualCardEditor
         private void LoadTriggersList()
         {
             ce_triggerComboBox.Items.Clear();
-            ComboBoxItem cbi;
-
-            var result = from EffectTrigger trig in db.EffectTriggers orderby trig.FireWhen select trig;
-            foreach (EffectTrigger t in result)
+            ComboBoxItem cbi = new ComboBoxItem();
+            //var result = from EffectTrigger et in db.EffectTriggers orderby et.FireText select et;
+            //foreach (EffectTrigger e in result)
+            foreach (EffectTrigger e in EffectTriggersList)
             {
                 cbi = new ComboBoxItem();
-                cbi.Tag = t.Id;
-                cbi.Content = t.FireText;
+
+                cbi.Tag = e.Id;
+                cbi.Content = e.FireText;
                 ce_triggerComboBox.Items.Add(cbi);
             }
+
         }
         private void LoadTargetsList()
         {
-            ce_targetComboBox.Items.Clear();
-            ce_triggerTargetComboBox.Items.Clear();
-            ComboBoxItem cbi;
-
-            var result = from Target tgt in db.Targets orderby tgt.Owner, tgt.CardType select tgt;
-            foreach (Target t in result)
-            {
-                cbi = new ComboBoxItem();
-                cbi.Tag = t.Id;
-                cbi.Content = t.Name;
-                ce_targetComboBox.Items.Add(cbi);
-            }
-            foreach (Target t in result)
-            {
-                cbi = new ComboBoxItem();
-                cbi.Tag = t.Id;
-                cbi.Content = t.Name;
-                ce_triggerTargetComboBox.Items.Add(cbi);
-            }
         }
 
         #endregion DropDown_Fillers
@@ -650,12 +703,52 @@ namespace VisualCardEditor
         #region FormSetup
         private void SetupCardEffectsGrid(CardEffect tgt)
         {
+            bool targets_generated = false;
+            if (tgt == null) return;
             var result = (from CardEffect lookup in db.CardEffects where lookup.Id == tgt.Id select lookup).FirstOrDefault();
             CardEffect tmp = result as CardEffect;
+            EffectTarget ttmp = null;
+
+            if (tmp.TriggerTarget != 0)
+            {
+                var tresult = (from EffectTarget lookup in db.EffectTargets where lookup.Id == tmp.TriggerTarget select lookup).FirstOrDefault();
+                ttmp = tresult as EffectTarget;
+            }
+            if (ttmp == null)
+            {
+                ttmp = db.EffectTargets.Create();
+                db.Entry(ttmp).State = EntityState.Added;
+                db.SaveChanges();
+                tmp.TriggerTarget = ttmp.Id;
+                targets_generated = true;
+            }
+            ttmp.CopyTo(CurrentTrigger);
+            ttmp = null;
+            if (tmp.EffectTarget != 0)
+            {
+                var tresult = (from EffectTarget lookup in db.EffectTargets where lookup.Id == tmp.EffectTarget select lookup).FirstOrDefault();
+                ttmp = tresult as EffectTarget;
+            }
+
+            if (ttmp == null)
+            {
+                ttmp = db.EffectTargets.Create();
+                db.Entry(ttmp).State = EntityState.Added;
+                db.SaveChanges();
+                tmp.EffectTarget = ttmp.Id;
+                targets_generated = true;
+            }
+            ttmp.CopyTo(CurrentTarget);
+            if (targets_generated)
+            {
+                db.Entry(tmp).State = EntityState.Modified;
+                db.SaveChanges();
+            }
             tmp.CopyTo(CurrentEffect);
+
             CardEffectEditGrid.DataContext = CurrentEffect;
             BuildCardEffectsJoinStr();
-            CurrentEffect.BuildEffectText();
+            BuildEffectText();
             TabStatus.CardEffectHasChanges = false;
         }
         private void SetupCardGrid(Card tgt)
@@ -664,7 +757,14 @@ namespace VisualCardEditor
             Card tmp = result as Card;
             tmp.CopyTo(CurrentCard);
             CardEditGrid.DataContext = CurrentCard;
+            ThisCardsTypesList = (from CardTypesJoin ctj in db.CardTypesJoins.Where(c => c.Card == CurrentCard.Id) select ctj.CardType).ToList();
+            ThisCardsEffectsList = (from CardEffectsJoin cej in db.CardEffectsJoins.Where(c => c.Card == CurrentCard.Id) select cej.CardEffect).ToList();
+            DeletedTypes = new List<int>();
+            AddedTypes = new List<int>();
+            DeletedEffects = new List<int>();
+            AddedEffects = new List<int>();
             BuildCardTypesJoinStr();
+            BuildCardEffectsJoinStr();
             TabStatus.CardHasChanges = false;
         }
         #endregion FormSetup
@@ -676,6 +776,30 @@ namespace VisualCardEditor
             Card temp = result as Card;
             CurrentCard.CopyTo(temp);
             db.Entry(temp).State = EntityState.Modified;
+            foreach (int a in AddedTypes)
+            {
+                CardTypesJoin ctj = db.CardTypesJoins.Create();
+                ctj.Card = CurrentCard.Id;
+                ctj.CardType = a;
+                db.Entry(ctj).State = EntityState.Added;
+            }
+
+            db.CardTypesJoins.
+                Where(c => c.Card == CurrentCard.Id).ToList().
+                RemoveAll(r => !DeletedTypes.Any(a => a == r.CardType));
+            
+            foreach (int a in AddedEffects)
+            {
+                CardEffectsJoin cej = db.CardEffectsJoins.Create();
+                cej.Card = CurrentCard.Id;
+                cej.CardEffect = a;
+                db.Entry(cej).State = EntityState.Added;
+            }
+
+            db.CardEffectsJoins.
+                Where(c => c.Card == CurrentCard.Id).ToList().
+                RemoveAll(r => !DeletedTypes.Any(a => a == r.CardEffect));
+
             db.SaveChanges();
             TabStatus.CardHasChanges = false;
         }
@@ -684,7 +808,19 @@ namespace VisualCardEditor
             var result = (from CardEffect lookup in db.CardEffects where lookup.Id == CurrentEffect.Id select lookup).FirstOrDefault();
             CardEffect temp = result as CardEffect;
             CurrentEffect.CopyTo(temp);
+
+            var trigger_result = (from EffectTarget lookup in db.EffectTargets where lookup.Id == CurrentTrigger.Id select lookup).FirstOrDefault();
+            EffectTarget trigger_temp = trigger_result as EffectTarget;
+            CurrentTrigger.CopyTo(trigger_temp);
+
+            var target_result = (from EffectTarget lookup in db.EffectTargets where lookup.Id == CurrentTarget.Id select lookup).FirstOrDefault();
+            EffectTarget target_temp = target_result as EffectTarget;
+            CurrentTarget.CopyTo(target_temp);
+
             db.Entry(temp).State = EntityState.Modified;
+            db.Entry(trigger_temp).State = EntityState.Modified;
+            db.Entry(target_temp).State = EntityState.Modified;
+
             db.SaveChanges();
             TabStatus.CardEffectHasChanges = false;
         }
@@ -695,18 +831,24 @@ namespace VisualCardEditor
         {
             TabStatus.CardHasChanges = true;
         }
-        
+
         private void CardEffectTextElementChanged(object sender, TextChangedEventArgs e)
         {
-            CurrentEffect.BuildEffectText();
+            BuildEffectText();
             TabStatus.CardEffectHasChanges = true;
         }
-        
+
         private void ce_DepleteCheckBox_Checked(object sender, RoutedEventArgs e)
         {
-            CurrentEffect.BuildEffectText();
+            BuildEffectText();
             TabStatus.CardEffectHasChanges = true;
         }
+        private void ce_DepleteCheckBox_Unchecked(object sender, RoutedEventArgs e)
+        {
+            BuildEffectText();
+            TabStatus.CardEffectHasChanges = true;
+        }
+
         #endregion
 
         #region EventHandlers_Buttons
@@ -773,7 +915,7 @@ namespace VisualCardEditor
 
         private void ce_durationComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            CurrentEffect.BuildEffectText();
+            BuildEffectText();
             TabStatus.CardEffectHasChanges = true;
         }
 
@@ -788,51 +930,53 @@ namespace VisualCardEditor
         {
             if (TabStatus.CardHasChanges)
             {
-                if (MessageBox.Show("Save Changes?", "Card data has unsaved changes", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
-                {
-
-                }
-                else
+                if (MessageBox.Show("Save Changes?", "Card data has unsaved changes", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
                 {
                     SaveCard(this, new RoutedEventArgs());
                 }
             }
+            MainTabControl.SelectedItem = MainTabControl.Items[0];
             SetupCardGrid(cardsListView.SelectedItem as Card);
         }
         private void cardEffectsListView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (TabStatus.CardEffectHasChanges)
             {
-                if (MessageBox.Show("Save Changes?", "Card Effect data has unsaved changes", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
-                {
-                }
-                else
+                if (MessageBox.Show("Save Changes?", "Card Effect data has unsaved changes", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
                 {
                     SaveCardEffect(this, new RoutedEventArgs());
                 }
             }
-
+            MainTabControl.SelectedItem = MainTabControl.Items[1];
             SetupCardEffectsGrid(cardEffectsListView.SelectedItem as CardEffect);
         }
 
         private void ce_SacrificeCountCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (CurrentEffect.SacrificeCount == 0) CurrentEffect.SacrificeType = 0;
-            CurrentEffect.BuildEffectText();
+            BuildEffectText();
             TabStatus.CardEffectHasChanges = true;
         }
 
         private void ce_DiscardCountCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (CurrentEffect.DiscardCount == 0) CurrentEffect.DiscardType = 0;
-            CurrentEffect.BuildEffectText();
+            BuildEffectText();
             TabStatus.CardEffectHasChanges = true;
         }
 
         private void ce_triggerTargetComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            CurrentEffect.BuildEffectText();
+            BuildEffectText();
             TabStatus.CardEffectHasChanges = true;
         }
+
+        private void ce_nameTextBox_TextInput(object sender, TextCompositionEventArgs e)
+        {
+            TabStatus.CardEffectHasChanges = true;
+        }
+
+
+
     }
 }

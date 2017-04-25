@@ -7,6 +7,7 @@ using System.Windows.Data;
 
 namespace VisualCardEditor
 {
+
     public class CardTypeNameLookup : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
@@ -14,12 +15,7 @@ namespace VisualCardEditor
             if (value is int)
             {
                 if ((int)value == 0) return "* Drag card type here *";
-                using (ChampionsDB db = new ChampionsDB())
-                {
-                    CardType ct = db.CardTypes.Find(value);
-                    if (ct == null) return null;
-                    return ct.Name;
-                }
+                return CardTypeName((int) value);
             }
             return null;
         }
@@ -37,7 +33,22 @@ namespace VisualCardEditor
             }
             return 0;
         }
+
+        public static string CardTypeName(int lookupID)
+        {
+            string result;
+            try
+            {
+                using (ChampionsDB db = new ChampionsDB())
+                {
+                    result = (from CardType ct in db.CardTypes where ct.Id == lookupID select ct.Name).FirstOrDefault();
+                }
+            }
+            catch (Exception)
+            {
+                return "< CARD TYPE >";
+            }
+            return result;
+        }
     }
-
-
 }
